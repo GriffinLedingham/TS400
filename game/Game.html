@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>CreateJS Example: Space Rocks Game</title>
+	<title>RPG</title>
 	
 	
 	<script>
@@ -203,6 +203,17 @@
 		player.accelerate(keys);
 		//call sub ticks
 		player.tick(event);
+		console.log(player);
+		if(player.x > canvas.width *.5)
+		{
+			stage.x = -player.x + canvas.width *.5
+		}
+
+		if(player.y> canvas.height *.5)
+		{
+			stage.y = -player.y + canvas.height *.5
+		}
+
 		stage.update(event);
 	}
 

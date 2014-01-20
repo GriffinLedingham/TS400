@@ -62,7 +62,7 @@
 		for ( var y = 0; y < layerData.height; y++) {
 			for ( var x = 0; x < layerData.width; x++) {
 				// create a new Bitmap for each cell
-				var cellBitmap = new createjs.BitmapAnimation(tilesetSheet);
+				var cellBitmap = new createjs.Sprite(tilesetSheet);
 				// layer data has single dimension array
 				var idx = x + y * layerData.width;
 				// tilemap data uses 1 as first value, EaselJS uses 0 (sub 1 to load correct tile)

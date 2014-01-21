@@ -110,9 +110,11 @@ handleClick = function() {
 
 restart = function() {
   stage.removeAllChildren();
-  player = new Player(playerSprite);
+  player = new Player(playerSprite, stage);
   player.x = canvas.width / 2;
   player.y = canvas.height / 2;
+  player.width = 165;
+  player.height = 292;
   lfHeld = rtHeld = fwdHeld = dnHeld = false;
   stage.clear();
   level = new Level(stage);
@@ -138,7 +140,7 @@ tick = function(event) {
     keys.push("right");
   }
   player.accelerate(keys);
-  player.tick(event);
+  player.tick(event, level);
   if (player.x > canvas.width * .5) {
     stage.x = -player.x + canvas.width * .5;
   }
@@ -225,6 +227,11 @@ document.onkeyup = handleKeyUp;
     this.initialize();
     return this.stage = stage;
   };
+  p = Level.prototype = new createjs.Container();
+  p.stage;
+  tileset = void 0;
+  mapData = void 0;
+  p.Container_initialize = p.initialize;
   initLayers = function() {
     var h, idx, imageData, layerData, tilesetSheet, w, _results;
     w = mapData.tilesets[0].tilewidth;
@@ -251,16 +258,22 @@ document.onkeyup = handleKeyUp;
   initLayer = function(layerData, tilesetSheet, tilewidth, tileheight) {
     var cellSprite, idx, x, y, _results;
     y = 0;
+    console.log(layerData);
     _results = [];
     while (y < layerData.height) {
       x = 0;
       while (x < layerData.width) {
         cellSprite = new createjs.Sprite(tilesetSheet);
         idx = x + y * layerData.width;
-        cellSprite.gotoAndStop(layerData.data[idx] - 1);
-        cellSprite.x = x * tilewidth;
-        cellSprite.y = y * tileheight;
-        this.stage.addChild(cellSprite);
+        if (layerData.data[idx] !== 0) {
+          cellSprite.gotoAndStop(layerData.data[idx] - 1);
+          cellSprite.x = x * tilewidth;
+          cellSprite.y = y * tileheight;
+          cellSprite.num = layerData.name;
+          cellSprite.hit = layerData.properties.hit;
+          cellSprite.type = 'tile';
+          this.stage.addChild(cellSprite);
+        }
         x++;
       }
       _results.push(y++);
@@ -280,11 +293,6 @@ document.onkeyup = handleKeyUp;
     responseText = httpGet(theUrl);
     return JSON.parse(responseText);
   };
-  p = Level.prototype = new createjs.Container();
-  p.stage;
-  tileset = void 0;
-  mapData = void 0;
-  p.Container_initialize = p.initialize;
   p.initialize = function(sprite) {
     this.Container_initialize();
     return $.ajax({
@@ -304,8 +312,8 @@ document.onkeyup = handleKeyUp;
 
 (function(window) {
   var MAX_VELOCITY, Player, p;
-  Player = function(sprite) {
-    return this.initialize(sprite);
+  Player = function(sprite, stage) {
+    return this.initialize(sprite, stage);
   };
   p = Player.prototype = new createjs.Container();
   p.vX;
@@ -314,17 +322,50 @@ document.onkeyup = handleKeyUp;
   p.hit;
   p.lastKey;
   MAX_VELOCITY = 20;
+  stage;
   p.Container_initialize = p.initialize;
-  p.initialize = function(sprite) {
+  p.initialize = function(sprite, stage) {
     this.Container_initialize();
     this.playerBody = sprite;
+    stage = stage;
     this.addChild(this.playerBody);
     this.vX = 0;
     return this.vY = 0;
   };
-  p.tick = function(event) {
-    this.x += this.vX;
-    return this.y += this.vY;
+  p.tick = function(event, level) {
+    var bottom_side, hit, left_side, right_side, top_side, view;
+    view = this;
+    hit = false;
+    right_side = view.x + view.width / 2;
+    left_side = view.x - view.width / 2;
+    top_side = view.y + view.height / 2;
+    bottom_side = view.y - view.height / 2;
+    stage.children.forEach(function(child) {
+      if (child.type === "tile") {
+        if (child.hit === "true") {
+          if (right_side > child.x && right_side < child.x + 96 && view.y > child.y && view.y < child.y + 96) {
+            hit = true;
+            view.x -= 5;
+          }
+          if (left_side < child.x + 96 && left_side > child.x && view.y > child.y && view.y < child.y + 96) {
+            hit = true;
+            view.x += 5;
+          }
+          if (view.x > child.x && view.x < child.x + 96 && top_side < child.y + 96 && top_side > child.y) {
+            hit = true;
+            view.y += 5;
+          }
+          if (view.x > child.x && view.x < child.x + 96 && bottom_side < child.y && bottom_side < child.y + 96) {
+            hit = true;
+            return view.y -= 5;
+          }
+        }
+      }
+    });
+    if (hit !== true) {
+      this.x += this.vX;
+      return this.y += this.vY;
+    }
   };
   p.accelerate = function(keys) {
     var latestKey, view;

@@ -3,6 +3,13 @@
     @initialize()
     @stage = stage
 
+  p = Level:: = new createjs.Container()
+  p.stage
+  tileset = undefined
+  mapData = undefined
+
+  p.Container_initialize = p.initialize
+
   initLayers = ->
     
     w = mapData.tilesets[0].tilewidth
@@ -21,13 +28,13 @@
 
     while idx < mapData.layers.length
       layerData = mapData.layers[idx]
-      initLayer layerData, tilesetSheet, mapData.tilewidth, mapData.tileheight  if layerData.type is "tilelayer"
+      initLayer layerData, tilesetSheet, mapData.tilewidth, mapData.tileheight if layerData.type is "tilelayer"
       idx++
   
   # layer initialization
   initLayer = (layerData, tilesetSheet, tilewidth, tileheight) ->
     y = 0
-
+    console.log layerData
     while y < layerData.height
       x = 0
 
@@ -38,12 +45,17 @@
         
         idx = x + y * layerData.width
         
-        cellSprite.gotoAndStop layerData.data[idx] - 1
-        
-        cellSprite.x = x * tilewidth
-        cellSprite.y = y * tileheight
-        
-        @stage.addChild cellSprite
+        if layerData.data[idx] isnt 0
+          cellSprite.gotoAndStop layerData.data[idx] - 1
+          
+          cellSprite.x = x * tilewidth
+          cellSprite.y = y * tileheight
+          cellSprite.num = layerData.name
+
+          cellSprite.hit = layerData.properties.hit
+          cellSprite.type = 'tile'
+          
+          @stage.addChild cellSprite
         x++
       y++
   
@@ -59,13 +71,6 @@
   httpGetData = (theUrl) ->
     responseText = httpGet(theUrl)
     JSON.parse responseText
-
-  p = Level:: = new createjs.Container()
-  p.stage
-  tileset = undefined
-  mapData = undefined
-
-  p.Container_initialize = p.initialize
 
   p.initialize = (sprite) ->
     @Container_initialize()

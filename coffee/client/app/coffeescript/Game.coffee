@@ -84,9 +84,12 @@ restart = ->
   stage.removeAllChildren()
   
   #create the player
-  player = new Player(playerSprite)
+  player = new Player(playerSprite, stage)
   player.x = canvas.width / 2
   player.y = canvas.height / 2
+
+  player.width = 165;
+  player.height = 292;
   
   #reset key presses
   lfHeld = rtHeld = fwdHeld = dnHeld = false
@@ -111,7 +114,7 @@ tick = (event) ->
   player.accelerate keys
   
   #call sub ticks
-  player.tick event
+  player.tick event, level
   stage.x = -player.x + canvas.width * .5  if player.x > canvas.width * .5
   stage.y = -player.y + canvas.height * .5  if player.y > canvas.height * .5
   stage.update event
